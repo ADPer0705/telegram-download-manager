@@ -1,0 +1,7 @@
+python-telegram-bot==20.5
+pytdlib==0.2.0
+tkinter
+asyncio
+aiofiles
+requests
+httpx
