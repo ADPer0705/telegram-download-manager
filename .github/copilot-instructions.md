@@ -1,42 +1,43 @@
-<!-- Use this file to provide workspace-specific custom instructions to Copilot. For more details, visit https://code.visualstudio.com/docs/copilot/copilot-customization#_use-a-githubcopilotinstructionsmd-file -->
-- [x] Verify that the copilot-instructions.md file in the .github directory is created.
+# Copilot Instructions for Telegram Download Manager
 
-- [x] Clarify Project Requirements
-	<!-- Python project for Telegram download manager using TDLib with GUI, download queue management, progress tracking, and resume capability -->
+## Project Overview
+This is a clean, well-organized Python project for managing Telegram file downloads with a GUI interface. The project has been cleaned up from previous clutter and now focuses on a single, robust application.
 
-- [x] Scaffold the Project
-	<!-- Project structure created with main.py, telegram_client.py, download_manager.py, database.py, config_manager.py, logger.py -->
+## Project Structure
+- `main.py` - Main GUI application entry point
+- `telegram_client.py` - Telegram API client wrapper
+- `download_manager.py` - Download queue and progress management
+- `database.py` - SQLite database operations for persistence
+- `config_manager.py` - Configuration file handling
+- `logger.py` - Centralized logging setup
+- `config.ini.example` - Configuration template
+- `requirements.txt` - Python dependencies (clean, minimal)
 
-- [x] Customize the Project
-	<!-- Core functionality implemented with robust download management, database storage, GUI interface, and error handling -->
+## Key Features
+- GUI interface built with Tkinter
+- Robust download management with resume capability
+- Database-backed persistence
+- Queue management for multiple concurrent downloads
+- Comprehensive error handling and logging
+- Progress tracking with visual feedback
 
-- [x] Install Required Extensions
-	<!-- No VS Code extensions needed for this Python project -->
+## Development Guidelines
+- Keep the codebase clean and minimal
+- Use the existing logger for all logging
+- Follow the established configuration management pattern
+- Maintain database schema consistency
+- Ensure proper error handling throughout
+- GUI should be user-friendly and responsive
 
-- [x] Compile the Project
-	<!--
-	Verify that all previous steps have been completed.
-	Install any missing dependencies.
-	Run diagnostics and resolve any issues.
-	Check for markdown files in project folder for relevant instructions on how to do this.
-	-->
+## Architecture Notes
+- Single client implementation (no multiple client variants)
+- Configuration-driven behavior
+- Database persistence for download state
+- Async/await pattern for Telegram operations
+- Tkinter for cross-platform GUI compatibility
 
-- [x] Create and Run Task
-	<!--
-	Verify that all previous steps have been completed.
-	Check https://code.visualstudio.com/docs/debugtest/tasks to determine if the project needs a task. If so, use the create_and_run_task to create and launch a task based on package.json, README.md, and project structure.
-	Skip this step otherwise.
-	 -->
-
-- [x] Launch the Project
-	<!--
-	Verify that all previous steps have been completed.
-	Prompt user for debug mode, launch only if confirmed.
-	 -->
-
-- [x] Ensure Documentation is Complete
-	<!--
-	Verify that all previous steps have been completed.
-	Verify that README.md and the copilot-instructions.md file in the .github directory exists and contains current project information.
-	Clean up the copilot-instructions.md file in the .github directory by removing all HTML comments.
-	 -->
+## Documentation
+- README.md contains comprehensive usage guide and FAQ
+- All configuration options are documented
+- Troubleshooting section covers common issues
+- Clear setup instructions for new users

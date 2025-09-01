@@ -1,169 +1,305 @@
-# Telegram Download Manager
+# 🚀 Telegram Download Manager
 
-A robust download manager for Telegram files using TDLib with GUI interface.
+<div align="center">
 
-## Features
+![Telegram Download Manager](https://img.shields.io/badge/Telegram-Download_Manager-2CA5E0?style=for-the-badge&logo=telegram)
+![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=for-the-badge&logo=python)
+![Tkinter](https://img.shields.io/badge/GUI-Tkinter-FF6B35?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-- **Reliable Downloads**: Automatic retry mechanism and resume capability for interrupted downloads
-- **Queue Management**: Download multiple files concurrently with proper queue handling
-- **Progress Tracking**: Real-time download progress with visual feedback and speed monitoring
-- **Resume Capability**: Automatically resume interrupted downloads from where they left off
-- **GUI Interface**: User-friendly interface built with Tkinter
-- **Database Storage**: Persistent storage of download history and queue state
-- **Error Handling**: Comprehensive error handling, logging, and retry mechanisms
-- **CLI Support**: Command-line interface for automated downloads
+**The coolest way to download files from Telegram!** 🎉
 
-## Requirements
+[📥 Download](#quick-start) • [📚 Documentation](DOCS.md) • [🐛 Report Issues](https://github.com/ADPer0705/telegram-download-manager/issues)
 
-- Python 3.8+
-- TDLib (Telegram Database Library) - optional, fallback mock client included
-- See `requirements.txt` for full dependencies
+---
 
-## Quick Start
+</div>
 
-1. **Setup**: Run the interactive setup script
-   ```bash
-   python setup.py
-   ```
+## ✨ Why Choose Telegram Download Manager?
 
-2. **Test**: Verify everything works
-   ```bash
-   python test_setup.py
-   ```
+🎯 **Multiple Authentication Methods** - Choose what works best for you!  
+⚡ **Lightning Fast Downloads** - Queue management with progress tracking  
+🔄 **Resume Interrupted Downloads** - Never lose progress again  
+💾 **Smart Database** - Persistent download history and queue state  
+🎨 **Beautiful GUI** - User-friendly interface that just works  
 
-3. **Run**: Start the GUI application
-   ```bash
-   python main.py
-   ```
+## 🌟 Features
 
-## Manual Installation
+<div align="center">
 
-1. Clone or download this project
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Copy configuration template:
-   ```bash
-   cp config.ini.example config.ini
-   ```
-4. Edit `config.ini` with your Telegram API credentials
-5. Run the application:
-   ```bash
-   python main.py
-   ```
+| Feature | Description |
+|---------|-------------|
+| 🤖 **Bot Token Support** | Easy setup with Telegram bots |
+| 🔑 **API Credentials** | Full access to all your files |
+| 🎮 **Demo Mode** | Test without any setup |
+| 📊 **Progress Tracking** | Real-time download progress |
+| 🔄 **Resume Downloads** | Continue interrupted downloads |
+| 📋 **Queue Management** | Handle multiple downloads efficiently |
+| 💾 **Database Storage** | Persistent download history |
+| 🛡️ **Error Handling** | Robust retry mechanisms |
 
-## Getting Telegram API Credentials
+</div>
 
-1. Go to https://my.telegram.org/
-2. Log in with your phone number
-3. Go to "API development tools"
-4. Create a new application
-5. Copy the `api_id` and `api_hash`
+## 🚀 Quick Start
 
-## Configuration
+<div align="center">
 
-The `config.ini` file contains all settings:
+### ⚡ Get Started in 3 Steps!
+
+</div>
+
+### 1️⃣ Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 2️⃣ Configure Authentication
+```bash
+cp config.ini.example config.ini
+# Edit config.ini - choose your preferred method below
+```
+
+### 3️⃣ Launch the App
+```bash
+python main.py
+```
+
+<div align="center">
+
+🎉 **That's it! You're ready to download!**
+
+</div>
+
+---
+
+## 🔐 Authentication Methods
+
+Choose the method that fits your needs:
+
+### 🤖 Bot Token (⭐ Recommended)
+<div align="center">
+
+**Perfect for most users - No phone verification needed!**
+
+</div>
 
 ```ini
 [telegram]
-api_id = your_api_id
-api_hash = your_api_hash
-phone = your_phone_number
+bot_token = YOUR_BOT_TOKEN_HERE
+```
 
+**Setup:**
+1. Message [@BotFather](https://t.me/botfather) on Telegram
+2. Send `/newbot` and follow instructions
+3. Copy your bot token to `config.ini`
+4. **Done!** 🎯
+
+**Best for:** Public files, group downloads, easy sharing
+
+---
+
+### 🔑 API Credentials (Full Access)
+<div align="center">
+
+**Complete access to all files you can see in Telegram**
+
+</div>
+
+```ini
+[telegram]
+api_id = YOUR_API_ID
+api_hash = YOUR_API_HASH
+phone = YOUR_PHONE_NUMBER
+```
+
+**Setup:**
+1. Visit [my.telegram.org](https://my.telegram.org/)
+2. Login and go to "API development tools"
+3. Create application and copy credentials
+4. Add to `config.ini`
+
+**Best for:** Private files, personal downloads, full control
+
+---
+
+### 🎮 Demo Mode (Zero Setup)
+<div align="center">
+
+**Test the app without any credentials!**
+
+</div>
+
+```ini
+[telegram]
+demo_mode = true
+```
+
+**Setup:** Just uncomment the line above!  
+**Best for:** Testing, demos, trying out features
+
+---
+
+## 📸 Screenshots
+
+<div align="center">
+
+*Coming soon - beautiful screenshots of the GUI in action!*
+
+</div>
+
+---
+
+## 🏗️ Project Structure
+
+```
+telegram_download_manager/
+├── 🎯 main.py              # Main GUI application
+├── 🤖 telegram_client.py   # User API client
+├── 🔧 bot_client.py        # Bot API & demo clients
+├── 📥 download_manager.py  # Download queue management
+├── 💾 database.py          # SQLite persistence
+├── ⚙️ config_manager.py    # Configuration handling
+├── 📝 logger.py            # Logging system
+├── 📋 config.ini.example   # Configuration template
+├── 📦 requirements.txt     # Python dependencies
+├── 📚 DOCS.md              # Detailed documentation
+└── 📄 README.md            # This file
+```
+
+---
+
+## 🎯 Usage Examples
+
+### Basic Download
+```bash
+python main.py
+# 1. Click "Connect"
+# 2. Enter file ID
+# 3. Click "Add Download"
+# 4. Watch progress!
+```
+
+### Batch Downloads
+- Add multiple file IDs
+- Queue manages concurrent downloads
+- Automatic retry on failures
+
+### Resume Downloads
+- Interrupted downloads resume automatically
+- No progress lost on network issues
+- Smart chunk-based resuming
+
+---
+
+## 🔧 Configuration
+
+### Advanced Settings
+
+```ini
 [downloads]
-download_path = ./downloads
-max_concurrent_downloads = 3
-chunk_size = 1048576
-retry_attempts = 5
-retry_delay = 5
+download_path = ./downloads          # Where to save files
+max_concurrent_downloads = 3         # Parallel downloads
+chunk_size = 1048576                 # Download chunk size
+retry_attempts = 5                   # Retry failed downloads
+retry_delay = 5                      # Delay between retries
 
 [logging]
-log_level = INFO
-log_file = telegram_downloader.log
+log_level = INFO                     # DEBUG, INFO, WARNING, ERROR
+log_file = logs/telegram_downloader.log
 ```
 
-## Usage
+### Performance Tuning
 
-### GUI Application
+- **Concurrent Downloads**: Balance speed vs. bandwidth
+- **Chunk Size**: Larger = faster, smaller = more stable
+- **Retry Settings**: Adjust based on your connection
 
-1. Start the application: `python main.py`
-2. Click "Connect" to authenticate with Telegram
-3. Enter file IDs and names to add downloads
-4. Monitor progress in the downloads list
-5. Use pause/resume for queue control
+---
 
-### Command Line Interface
+## ❓ Quick FAQ
 
+**Q: Which authentication method should I use?**  
+A: Start with **Bot Token** - it's easiest! Use API credentials for full access.
+
+**Q: Can I download private files?**  
+A: Yes, with API credentials. Bot tokens work with public files only.
+
+**Q: What file sizes are supported?**  
+A: API credentials: No limit. Bot tokens: Up to 20MB (Telegram limit).
+
+**Q: Does it resume interrupted downloads?**  
+A: Yes! Automatically resumes from where it left off.
+
+**Q: Can I download multiple files?**  
+A: Absolutely! The queue handles multiple concurrent downloads.
+
+---
+
+## 🛠️ Development
+
+### Requirements
+- Python 3.8+
+- Tkinter (usually included with Python)
+- Internet connection
+
+### Running Tests
 ```bash
-# Download a specific file
-python cli.py --file-id "your_file_id" --file-name "custom_name.ext"
-
-# Download to specific directory
-python cli.py --file-id "your_file_id" --output-dir "/path/to/downloads"
+python -c "import main; print('✅ All good!')"
 ```
 
-### How to Get File IDs
+### Contributing
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
-File IDs can be obtained from:
-- Telegram Bot API
-- TDLib client inspection
-- Browser developer tools on Telegram Web
-- Third-party Telegram tools
+---
 
-## Architecture
+## 📈 Roadmap
 
-- `main.py`: GUI application entry point
-- `telegram_client.py`: TDLib client wrapper with fallback mock
-- `enhanced_client.py`: Enhanced client with better download features
-- `download_manager.py`: Download queue and progress management
-- `database.py`: SQLite database operations for persistence
-- `config_manager.py`: Configuration file handling
-- `logger.py`: Centralized logging setup
-- `cli.py`: Command-line interface
-- `setup.py`: Interactive setup script
-- `test_setup.py`: Setup verification script
+- [ ] 📸 Add screenshots and demo GIFs
+- [ ] 🌐 Web interface option
+- [ ] 📱 Mobile app version
+- [ ] 🔍 File search functionality
+- [ ] 📊 Download analytics
+- [ ] 🎨 Dark mode theme
+- [ ] 🌍 Multi-language support
 
-## Features in Detail
+---
 
-### Reliable Downloads
-- Automatic retry on network failures
-- Configurable retry attempts and delays
-- Resume capability for interrupted downloads
-- Partial file handling
+## 🤝 Support & Community
 
-### Queue Management
-- Concurrent download support
-- Priority-based queue processing
-- Pause/resume functionality
-- Individual download control
+<div align="center">
 
-### Progress Tracking
-- Real-time progress updates
-- Download speed calculation
-- Visual progress bars
-- Detailed status information
+**Need help? Found a bug? Have a suggestion?**
 
-### Error Handling
-- Comprehensive error logging
-- User-friendly error messages
-- Automatic retry mechanisms
-- Graceful degradation
+🐛 [Report Issues](https://github.com/ADPer0705/telegram-download-manager/issues)  
+💬 [Discussions](https://github.com/ADPer0705/telegram-download-manager/discussions)  
+📧 [Contact](mailto:your.email@example.com)
 
-## Development Notes
+</div>
 
-- The current implementation includes a mock client for development and testing
-- For production use, proper TDLib integration is recommended
-- The GUI is built with Tkinter for maximum compatibility
-- SQLite database ensures download state persistence
+---
 
-## Troubleshooting
+## 📄 License
 
-1. **Import Errors**: Run `python test_setup.py` to check dependencies
-2. **Connection Issues**: Verify API credentials in `config.ini`
-3. **Download Failures**: Check logs in the `logs/` directory
-4. **Permission Errors**: Ensure write access to download directory
+<div align="center">
 
-## License
+**MIT License** - Free to use, modify, and distribute!
 
-MIT License
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+</div>
+
+---
+
+<div align="center">
+
+**Made with ❤️ for the Telegram community**
+
+⭐ **Star this repo if you found it useful!**
+
+[⬆️ Back to Top](#-telegram-download-manager)
+
+</div>

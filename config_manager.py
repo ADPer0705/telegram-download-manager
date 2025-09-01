@@ -28,14 +28,42 @@ class ConfigManager:
     def get_telegram_config(self):
         """Get Telegram API configuration."""
         try:
-            return {
-                'api_id': int(self.config.get('telegram', 'api_id')),
-                'api_hash': self.config.get('telegram', 'api_hash'),
-                'phone': self.config.get('telegram', 'phone')
-            }
+            config = {}
+            
+            # Check for bot token (easiest option)
+            if self.config.has_option('telegram', 'bot_token'):
+                config['bot_token'] = self.config.get('telegram', 'bot_token')
+                config['auth_type'] = 'bot'
+                return config
+            
+            # Check for demo mode
+            if self.config.has_option('telegram', 'demo_mode'):
+                if self.config.getboolean('telegram', 'demo_mode'):
+                    config['auth_type'] = 'demo'
+                    return config
+            
+            # Fall back to user authentication
+            if (self.config.has_option('telegram', 'api_id') and 
+                self.config.has_option('telegram', 'api_hash') and 
+                self.config.has_option('telegram', 'phone')):
+                
+                config = {
+                    'api_id': int(self.config.get('telegram', 'api_id')),
+                    'api_hash': self.config.get('telegram', 'api_hash'),
+                    'phone': self.config.get('telegram', 'phone'),
+                    'auth_type': 'user'
+                }
+                return config
+            
+            # If nothing is configured, default to demo mode
+            self.logger.warning("No authentication configured, using demo mode")
+            config['auth_type'] = 'demo'
+            return config
+            
         except Exception as e:
             self.logger.error(f"Error reading Telegram configuration: {e}")
-            raise
+            # Default to demo mode on error
+            return {'auth_type': 'demo'}
     
     def get_download_config(self):
         """Get download configuration."""

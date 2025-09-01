@@ -6,6 +6,7 @@ from pathlib import Path
 import webbrowser
 from config_manager import ConfigManager
 from telegram_client import TelegramClient
+from bot_client import BotTelegramClient, DemoTelegramClient
 from download_manager import DownloadManager
 from logger import Logger
 
@@ -183,12 +184,22 @@ class TelegramDownloadManagerGUI:
                 # Get Telegram configuration
                 telegram_config = self.config_manager.get_telegram_config()
                 
-                # Initialize Telegram client
-                self.telegram_client = TelegramClient(
-                    api_id=telegram_config['api_id'],
-                    api_hash=telegram_config['api_hash'],
-                    phone=telegram_config['phone']
-                )
+                # Initialize appropriate client based on configuration
+                auth_type = telegram_config.get('auth_type', 'user')
+                
+                if auth_type == 'bot':
+                    self.telegram_client = BotTelegramClient(
+                        bot_token=telegram_config.get('bot_token')
+                    )
+                elif auth_type == 'demo':
+                    self.telegram_client = DemoTelegramClient()
+                else:
+                    # User authentication (API credentials)
+                    self.telegram_client = TelegramClient(
+                        api_id=telegram_config.get('api_id'),
+                        api_hash=telegram_config.get('api_hash'),
+                        phone=telegram_config.get('phone')
+                    )
                 
                 # Connect to Telegram
                 loop = asyncio.new_event_loop()
