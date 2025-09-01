@@ -197,7 +197,7 @@ python main.py
 
 ```ini
 [downloads]
-download_path = ./downloads          # Where to save files
+download_path = ~/Downloads          # Where to save files (supports ~ for home directory)
 max_concurrent_downloads = 3         # Parallel downloads
 chunk_size = 1048576                 # Download chunk size
 retry_attempts = 5                   # Retry failed downloads
@@ -207,6 +207,13 @@ retry_delay = 5                      # Delay between retries
 log_level = INFO                     # DEBUG, INFO, WARNING, ERROR
 log_file = logs/telegram_downloader.log
 ```
+
+### Download Path Configuration
+
+- **Relative paths**: `./downloads`, `downloads/` 
+- **Absolute paths**: `/home/user/Downloads`, `C:\Downloads\`
+- **Home directory**: `~/Downloads` (automatically expanded)
+- **Environment variables**: Supported via shell expansion
 
 ### Performance Tuning
 

@@ -241,3 +241,23 @@ class Database:
                 
             except Exception as e:
                 self.logger.error(f"Error deleting download: {e}")
+    
+    def delete_completed_downloads(self):
+        """Delete all completed and cancelled downloads from database."""
+        with self._lock:
+            try:
+                conn = sqlite3.connect(self.db_path)
+                cursor = conn.cursor()
+                
+                cursor.execute('DELETE FROM downloads WHERE status IN (?, ?)', ('completed', 'cancelled'))
+                deleted_count = cursor.rowcount
+                
+                conn.commit()
+                conn.close()
+                
+                self.logger.info(f"Deleted {deleted_count} completed/cancelled downloads")
+                return deleted_count
+                
+            except Exception as e:
+                self.logger.error(f"Error deleting completed downloads: {e}")
+                return 0

@@ -33,6 +33,12 @@ class TelegramDownloadManagerGUI:
         self.status_var = tk.StringVar(value="Not connected")
         self.download_path_var = tk.StringVar()
         
+        # File ID mapping for tree items
+        self.tree_file_id_map = {}
+        
+        # Auto-refresh for speed updates
+        self.refresh_job = None
+        
         # Initialize GUI
         self.create_gui()
         
@@ -94,7 +100,7 @@ class TelegramDownloadManagerGUI:
         self.pause_button = ttk.Button(control_frame, text="Pause All", command=self.toggle_pause)
         self.pause_button.pack(side="left", padx=(0, 5))
         
-        ttk.Button(control_frame, text="Clear Completed", command=self.clear_completed).pack(side="left", padx=5)
+        ttk.Button(control_frame, text="Clear Finished", command=self.clear_completed).pack(side="left", padx=5)
         ttk.Button(control_frame, text="Refresh", command=self.refresh_downloads).pack(side="left", padx=5)
         
         # Downloads list frame
@@ -218,6 +224,7 @@ class TelegramDownloadManagerGUI:
                     self.root.after(0, lambda: self.connect_button.configure(text="Disconnect", state="normal"))
                     self.root.after(0, lambda: self.log_message("Connected to Telegram successfully"))
                     self.root.after(0, self.refresh_downloads)
+                    self.root.after(0, self.start_auto_refresh)  # Start auto-refresh
                 else:
                     raise Exception("Failed to connect to Telegram")
                 
@@ -232,6 +239,9 @@ class TelegramDownloadManagerGUI:
     def disconnect_telegram(self):
         """Disconnect from Telegram."""
         try:
+            # Stop auto-refresh
+            self.stop_auto_refresh()
+            
             if self.download_manager:
                 self.download_manager.stop_downloads()
                 self.download_manager = None
@@ -298,18 +308,44 @@ class TelegramDownloadManagerGUI:
             self.pause_button.configure(text="Pause All")
     
     def clear_completed(self):
-        """Clear completed downloads from the list."""
-        # This would remove completed downloads from database
-        self.log_message("Clear completed downloads - not yet implemented")
+        """Clear completed and cancelled downloads from the list."""
+        if not self.download_manager:
+            messagebox.showwarning("Not Connected", "Please connect to Telegram first")
+            return
+        
+        try:
+            # Ask for confirmation
+            result = messagebox.askyesno(
+                "Clear Finished Downloads", 
+                "Are you sure you want to remove all completed and cancelled downloads from the list?\\n\\n"
+                "This will permanently delete them from the download history."
+            )
+            
+            if result:
+                deleted_count = self.download_manager.clear_completed_downloads()
+                
+                if deleted_count > 0:
+                    self.log_message(f"Cleared {deleted_count} finished downloads")
+                    self.refresh_downloads()
+                    messagebox.showinfo("Success", f"Removed {deleted_count} finished downloads")
+                else:
+                    self.log_message("No finished downloads to clear")
+                    messagebox.showinfo("Info", "No finished downloads found to clear")
+                    
+        except Exception as e:
+            error_msg = f"Error clearing finished downloads: {e}"
+            self.log_message(error_msg)
+            messagebox.showerror("Error", error_msg)
     
     def refresh_downloads(self):
         """Refresh the downloads list."""
         if not self.download_manager:
             return
         
-        # Clear current items
+        # Clear current items and mapping
         for item in self.downloads_tree.get_children():
             self.downloads_tree.delete(item)
+        self.tree_file_id_map.clear()
         
         # Get all downloads
         downloads = self.download_manager.get_all_downloads()
@@ -318,13 +354,54 @@ class TelegramDownloadManagerGUI:
             progress_text = f"{download['progress']:.1f}%" if download['progress'] else "0%"
             size_text = self.format_file_size(download['file_size']) if download['file_size'] else "Unknown"
             
-            self.downloads_tree.insert("", "end", 
-                                     text=str(download['id']),
+            # Get current download speed
+            speed_text = ""
+            if download['status'] == 'downloading' and self.download_manager:
+                speed = self.download_manager.get_download_speed(download['file_id'])
+                speed_text = self.format_speed(speed) if speed > 0 else ""
+            
+            # Store file_id in the item for easy retrieval
+            item_id = self.downloads_tree.insert("", "end", 
+                                     text=f"{download['id']} ({download['file_id']})",
                                      values=(download['file_name'],
                                             download['status'],
                                             progress_text,
                                             size_text,
-                                            ""))  # Speed placeholder
+                                            speed_text))  # Show actual speed
+            
+            # Map tree item to file_id for easy lookup
+            self.tree_file_id_map[item_id] = download['file_id']
+    
+    def start_auto_refresh(self):
+        """Start automatic refresh for real-time updates."""
+        if self.refresh_job is None:
+            self._schedule_refresh()
+    
+    def stop_auto_refresh(self):
+        """Stop automatic refresh."""
+        if self.refresh_job is not None:
+            self.root.after_cancel(self.refresh_job)
+            self.refresh_job = None
+    
+    def _schedule_refresh(self):
+        """Schedule the next refresh."""
+        if self.download_manager:
+            self.refresh_downloads()
+        self.refresh_job = self.root.after(2000, self._schedule_refresh)  # Refresh every 2 seconds
+    
+    def get_selected_file_id(self):
+        """Get the file_id of the currently selected download."""
+        selected = self.downloads_tree.selection()
+        if selected:
+            return self.tree_file_id_map.get(selected[0])
+        return None
+    
+    def get_selected_download_info(self):
+        """Get the full download info of the currently selected download."""
+        file_id = self.get_selected_file_id()
+        if file_id and self.download_manager:
+            return self.download_manager.get_download_status(file_id)
+        return None
     
     def show_context_menu(self, event):
         """Show context menu for downloads."""
@@ -334,19 +411,103 @@ class TelegramDownloadManagerGUI:
     
     def retry_selected(self):
         """Retry selected download."""
-        selected = self.downloads_tree.selection()
-        if selected and self.download_manager:
-            item = self.downloads_tree.item(selected[0])
-            file_id = item['values'][0]  # This would need proper mapping
-            self.log_message("Retry download - not yet fully implemented")
+        file_id = self.get_selected_file_id()
+        if not file_id:
+            messagebox.showwarning("No Selection", "Please select a download to retry")
+            return
+        
+        if not self.download_manager:
+            messagebox.showwarning("Not Connected", "Please connect to Telegram first")
+            return
+        
+        try:
+            download_info = self.get_selected_download_info()
+            if not download_info:
+                messagebox.showerror("Error", "Could not find download information")
+                return
+            
+            if download_info['status'] not in ['failed', 'cancelled']:
+                messagebox.showinfo("Info", f"Download is currently {download_info['status']}. Only failed or cancelled downloads can be retried.")
+                return
+            
+            self.download_manager.retry_download(file_id)
+            self.log_message(f"Retrying download: {download_info['file_name']}")
+            self.refresh_downloads()
+            
+        except Exception as e:
+            error_msg = f"Error retrying download: {e}"
+            self.log_message(error_msg)
+            messagebox.showerror("Error", error_msg)
     
     def cancel_selected(self):
         """Cancel selected download."""
-        self.log_message("Cancel download - not yet fully implemented")
+        file_id = self.get_selected_file_id()
+        if not file_id:
+            messagebox.showwarning("No Selection", "Please select a download to cancel")
+            return
+        
+        if not self.download_manager:
+            messagebox.showwarning("Not Connected", "Please connect to Telegram first")
+            return
+        
+        try:
+            download_info = self.get_selected_download_info()
+            if not download_info:
+                messagebox.showerror("Error", "Could not find download information")
+                return
+            
+            if download_info['status'] in ['completed', 'cancelled']:
+                messagebox.showinfo("Info", f"Download is already {download_info['status']} and cannot be cancelled.")
+                return
+            
+            result = messagebox.askyesno(
+                "Cancel Download", 
+                f"Are you sure you want to cancel the download of '{download_info['file_name']}'?"
+            )
+            
+            if result:
+                self.download_manager.cancel_download(file_id)
+                self.log_message(f"Cancelled download: {download_info['file_name']}")
+                self.refresh_downloads()
+                
+        except Exception as e:
+            error_msg = f"Error cancelling download: {e}"
+            self.log_message(error_msg)
+            messagebox.showerror("Error", error_msg)
     
     def remove_selected(self):
         """Remove selected download."""
-        self.log_message("Remove download - not yet fully implemented")
+        file_id = self.get_selected_file_id()
+        if not file_id:
+            messagebox.showwarning("No Selection", "Please select a download to remove")
+            return
+        
+        try:
+            download_info = self.get_selected_download_info()
+            if not download_info:
+                messagebox.showerror("Error", "Could not find download information")
+                return
+            
+            result = messagebox.askyesno(
+                "Remove Download", 
+                f"Are you sure you want to remove '{download_info['file_name']}' from the download list?\\n\\n"
+                "This will permanently delete it from the download history."
+            )
+            
+            if result:
+                # Cancel if currently active
+                if download_info['status'] in ['downloading', 'pending']:
+                    self.download_manager.cancel_download(file_id)
+                
+                # Remove from database
+                self.download_manager.database.delete_download(file_id)
+                self.log_message(f"Removed download: {download_info['file_name']}")
+                self.refresh_downloads()
+                
+        except Exception as e:
+            error_msg = f"Error removing download: {e}"
+            self.log_message(error_msg)
+            messagebox.showerror("Error", error_msg)
     
     def open_folder(self):
         """Open download folder."""
@@ -391,9 +552,23 @@ class TelegramDownloadManagerGUI:
             size_bytes /= 1024.0
         return f"{size_bytes:.1f} PB"
     
+    def format_speed(self, speed_bytes_per_sec):
+        """Format download speed in human readable format."""
+        if not speed_bytes_per_sec or speed_bytes_per_sec < 1:
+            return "0 B/s"
+        
+        for unit in ['B/s', 'KB/s', 'MB/s', 'GB/s']:
+            if speed_bytes_per_sec < 1024.0:
+                return f"{speed_bytes_per_sec:.1f} {unit}"
+            speed_bytes_per_sec /= 1024.0
+        return f"{speed_bytes_per_sec:.1f} TB/s"
+    
     def on_closing(self):
         """Handle application closing."""
         try:
+            # Stop auto-refresh
+            self.stop_auto_refresh()
+            
             if self.download_manager:
                 self.download_manager.stop_downloads()
             

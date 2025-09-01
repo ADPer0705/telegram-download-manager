@@ -21,7 +21,7 @@ class DownloadManager:
         self.max_concurrent = config['max_concurrent_downloads']
         self.retry_attempts = config['retry_attempts']
         self.retry_delay = config['retry_delay']
-        self.download_path = Path(config['download_path'])
+        self.download_path = Path(config['download_path']).expanduser()
         
         # Queue management
         self.download_queue = queue.Queue()
@@ -34,6 +34,11 @@ class DownloadManager:
         # Progress callbacks
         self.progress_callbacks = {}
         self.status_callbacks = []
+        
+        # Speed tracking
+        self.download_speeds = {}  # file_id -> current speed in bytes/sec
+        self.download_start_times = {}  # file_id -> start timestamp
+        self.last_progress_update = {}  # file_id -> (timestamp, bytes_downloaded)
         
         # Create download directory
         self.download_path.mkdir(parents=True, exist_ok=True)
@@ -129,12 +134,22 @@ class DownloadManager:
     def cancel_download(self, file_id):
         """Cancel a specific download."""
         try:
+            # Cancel active download
             if file_id in self.active_downloads:
                 download_info = self.active_downloads[file_id]
                 download_info['cancelled'] = True
                 self.database.update_download_status(file_id, 'cancelled')
-                self.logger.info(f"Cancelled download: {file_id}")
+                self._cleanup_download_tracking(file_id)
+                self.logger.info(f"Cancelled active download: {file_id}")
                 self._notify_status_change("download_cancelled", download_info)
+            else:
+                # Cancel pending download by updating status in database
+                download_info = self.database.get_download(file_id)
+                if download_info and download_info['status'] in ['pending', 'downloading']:
+                    self.database.update_download_status(file_id, 'cancelled')
+                    self._cleanup_download_tracking(file_id)
+                    self.logger.info(f"Cancelled pending download: {file_id}")
+                    self._notify_status_change("download_cancelled", download_info)
                 
         except Exception as e:
             self.logger.error(f"Error cancelling download: {e}")
@@ -169,6 +184,10 @@ class DownloadManager:
         """Get all downloads from database."""
         return self.database.get_all_downloads()
     
+    def clear_completed_downloads(self):
+        """Clear all completed downloads from database."""
+        return self.database.delete_completed_downloads()
+    
     def add_progress_callback(self, file_id, callback):
         """Add a progress callback for a specific download."""
         self.progress_callbacks[file_id] = callback
@@ -176,6 +195,40 @@ class DownloadManager:
     def add_status_callback(self, callback):
         """Add a status callback for general events."""
         self.status_callbacks.append(callback)
+    
+    def get_download_speed(self, file_id):
+        """Get current download speed for a file."""
+        return self.download_speeds.get(file_id, 0)
+    
+    def _update_download_speed(self, file_id, downloaded_bytes):
+        """Update download speed calculation."""
+        current_time = time.time()
+        
+        if file_id not in self.download_start_times:
+            self.download_start_times[file_id] = current_time
+            self.last_progress_update[file_id] = (current_time, downloaded_bytes)
+            self.download_speeds[file_id] = 0
+            return
+        
+        # Calculate speed based on recent progress
+        last_time, last_bytes = self.last_progress_update.get(file_id, (current_time, 0))
+        time_diff = current_time - last_time
+        
+        if time_diff > 0.5:  # Update speed every 0.5 seconds
+            bytes_diff = downloaded_bytes - last_bytes
+            speed = bytes_diff / time_diff if time_diff > 0 else 0
+            
+            # Smooth the speed calculation (running average)
+            current_speed = self.download_speeds.get(file_id, 0)
+            self.download_speeds[file_id] = (current_speed * 0.7) + (speed * 0.3)
+            
+            self.last_progress_update[file_id] = (current_time, downloaded_bytes)
+    
+    def _cleanup_download_tracking(self, file_id):
+        """Clean up tracking data for a completed/cancelled download."""
+        self.download_speeds.pop(file_id, None)
+        self.download_start_times.pop(file_id, None)
+        self.last_progress_update.pop(file_id, None)
     
     def _load_pending_downloads(self):
         """Load pending downloads from database."""
@@ -240,6 +293,10 @@ class DownloadManager:
             
             # Create progress callback
             def progress_callback(downloaded_bytes, total_bytes, progress_percent):
+                # Update speed tracking
+                self._update_download_speed(file_id, downloaded_bytes)
+                
+                # Update database
                 self.database.update_download_progress(file_id, progress_percent, downloaded_bytes)
                 
                 # Call registered progress callback if exists
@@ -260,6 +317,7 @@ class DownloadManager:
                 # Download completed successfully
                 self.database.update_download_status(file_id, 'completed')
                 self.logger.info(f"Download completed: {file_name}")
+                self._cleanup_download_tracking(file_id)
                 self._notify_status_change("download_completed", download_item)
             else:
                 raise Exception("Download was cancelled or failed")
@@ -281,6 +339,7 @@ class DownloadManager:
             else:
                 # Max retries reached
                 self.database.update_download_status(file_id, 'failed', str(e))
+                self._cleanup_download_tracking(file_id)
                 self._notify_status_change("download_failed", download_item)
         
         finally:
