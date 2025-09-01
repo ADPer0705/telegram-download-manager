@@ -173,7 +173,7 @@ class TelegramDownloadManagerGUI:
         except Exception as e:
             self.log_message(f"Error initializing application: {e}")
             messagebox.showerror("Initialization Error", 
-                               f"Error loading configuration: {e}\\n\\n"
+                               f"Error loading configuration: {e}\n\n"
                                "Please check config.ini file")
     
     def connect_telegram(self):
@@ -317,7 +317,7 @@ class TelegramDownloadManagerGUI:
             # Ask for confirmation
             result = messagebox.askyesno(
                 "Clear Finished Downloads", 
-                "Are you sure you want to remove all completed and cancelled downloads from the list?\\n\\n"
+                "Are you sure you want to remove all completed and cancelled downloads from the list?\n\n"
                 "This will permanently delete them from the download history."
             )
             
@@ -490,7 +490,7 @@ class TelegramDownloadManagerGUI:
             
             result = messagebox.askyesno(
                 "Remove Download", 
-                f"Are you sure you want to remove '{download_info['file_name']}' from the download list?\\n\\n"
+                f"Are you sure you want to remove '{download_info['file_name']}' from the download list?\n\n"
                 "This will permanently delete it from the download history."
             )
             
@@ -534,7 +534,7 @@ class TelegramDownloadManagerGUI:
     def log_message(self, message):
         """Add message to log."""
         self.log_text.configure(state="normal")
-        self.log_text.insert(tk.END, f"{message}\\n")
+        self.log_text.insert(tk.END, f"{message}\n")
         self.log_text.configure(state="disabled")
         self.log_text.see(tk.END)
         
